@@ -1,0 +1,98 @@
+{
+  "$schema": "./schemas/label-definitions.schema.json",
+  "version": "1.0.0",
+  "sets": {
+    "core": {
+      "description": "Applied to all repos — GitHub essentials",
+      "labels": [
+        { "name": "bug", "color": "d73a4a", "description": "Something isn't working" },
+        { "name": "enhancement", "color": "a2eeef", "description": "New feature or request" },
+        { "name": "documentation", "color": "0075ca", "description": "Improvements or additions to documentation" },
+        { "name": "good first issue", "color": "7057ff", "description": "Good for newcomers" },
+        { "name": "help wanted", "color": "008672", "description": "Extra attention is needed" },
+        { "name": "invalid", "color": "e4e669", "description": "This doesn't seem right" },
+        { "name": "question", "color": "d876e3", "description": "Further information is requested" },
+        { "name": "duplicate", "color": "cfd3d7", "description": "This issue or pull request already exists" },
+        { "name": "wontfix", "color": "ffffff", "description": "This will not be worked on" }
+      ]
+    },
+    "type": {
+      "description": "Change type classification — mirrors conventional commit types",
+      "labels": [
+        { "name": "type/feature", "color": "1D76DB", "description": "New functionality" },
+        { "name": "type/fix", "color": "1D76DB", "description": "Bug fix" },
+        { "name": "type/refactor", "color": "1D76DB", "description": "Code improvement without behavior change" },
+        { "name": "type/docs", "color": "1D76DB", "description": "Documentation changes" },
+        { "name": "type/test", "color": "1D76DB", "description": "Test additions or fixes" },
+        { "name": "type/ci", "color": "1D76DB", "description": "CI/CD pipeline changes" },
+        { "name": "type/chore", "color": "1D76DB", "description": "Maintenance and housekeeping" },
+        { "name": "type/security", "color": "1D76DB", "description": "Security improvement" },
+        { "name": "type/config", "color": "1D76DB", "description": "Configuration file changes" }
+      ]
+    },
+    "priority": {
+      "description": "Priority levels — traffic light colors",
+      "labels": [
+        { "name": "priority/critical", "color": "B60205", "description": "Must fix immediately" },
+        { "name": "priority/high", "color": "D93F0B", "description": "Important, address soon" },
+        { "name": "priority/medium", "color": "FBCA04", "description": "Normal priority" },
+        { "name": "priority/low", "color": "0E8A16", "description": "Nice to have" }
+      ]
+    },
+    "status": {
+      "description": "Workflow status tracking",
+      "labels": [
+        { "name": "status/blocked", "color": "B60205", "description": "Blocked by external dependency" },
+        { "name": "status/in-progress", "color": "0E8A16", "description": "Currently being worked on" },
+        { "name": "status/needs-review", "color": "FBCA04", "description": "Awaiting review" },
+        { "name": "status/needs-testing", "color": "FBCA04", "description": "Needs testing on target machine" },
+        { "name": "status/ready", "color": "0E8A16", "description": "Ready for implementation" },
+        { "name": "delegated", "color": "D4A574", "description": "Cross-repo delegated work — prioritize, another repo may be blocked" }
+      ]
+    },
+    "agent": {
+      "description": "Tracks who drives changes — human, agent, or collaboration",
+      "labels": [
+        { "name": "agent/claude", "color": "D4A574", "description": "Claude Code managed change" },
+        { "name": "agent/human", "color": "C5DEF5", "description": "Human-driven change" },
+        { "name": "agent/co-op", "color": "BFD4F2", "description": "Human + agent collaboration" }
+      ]
+    },
+    "delegation": {
+      "description": "Cross-repo delegation state machine — tracks lifecycle of work filed in other repos",
+      "labels": [
+        { "name": "delegation/filed", "color": "D4A574", "description": "Delegation filed — awaiting acknowledgement" },
+        { "name": "delegation/ack", "color": "C5DEF5", "description": "Target repo acknowledged — scheduled" },
+        { "name": "delegation/wip", "color": "0E8A16", "description": "Target actively working" },
+        { "name": "delegation/review", "color": "1D76DB", "description": "Work done — source repo review needed" },
+        { "name": "delegation/done", "color": "0E8A16", "description": "Verified complete by source repo" },
+        { "name": "delegation/blocked", "color": "B60205", "description": "Blocked — needs input from source or target" }
+      ]
+    }
+  },
+  "categoryOverrides": {
+    "infrastructure": {
+      "description": "Additional labels for infrastructure repos (dotfiles, home-ops, etc.)",
+      "labels": [
+        { "name": "tool/chezmoi", "color": "FBCA04", "description": "Chezmoi dotfiles manager" },
+        { "name": "tool/homebrew", "color": "FBCA04", "description": "Homebrew package manager" },
+        { "name": "tool/mise", "color": "FBCA04", "description": "mise runtime manager" },
+        { "name": "tool/1password", "color": "FBCA04", "description": "1Password integration" },
+        { "name": "tool/fabric", "color": "FBCA04", "description": "Fabric AI patterns" },
+        { "name": "machine/all", "color": "C5DEF5", "description": "Affects all machines" },
+        { "name": "machine/arechste-mini", "color": "C5DEF5", "description": "Mac Mini specific" },
+        { "name": "machine/tutnix", "color": "C5DEF5", "description": "MacBook specific" },
+        { "name": "machine/corp", "color": "C5DEF5", "description": "Corporate machine specific" },
+        { "name": "machine/linux", "color": "C5DEF5", "description": "Linux machine specific" }
+      ]
+    },
+    "learning": {
+      "description": "Additional labels for learning/training repos",
+      "labels": [
+        { "name": "difficulty/beginner", "color": "0E8A16", "description": "Beginner level content" },
+        { "name": "difficulty/intermediate", "color": "FBCA04", "description": "Intermediate level content" },
+        { "name": "difficulty/advanced", "color": "D93F0B", "description": "Advanced level content" }
+      ]
+    }
+  }
+}
