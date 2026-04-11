@@ -3,7 +3,7 @@
 ## Quick Start
 
 1. Fork the repo (or create a branch if you have access)
-2. Create a feature branch: `git checkout -b feat/description`
+2. Create a feature branch: `git switch -c feat/description`
 3. Make your changes
 4. Commit using conventional format: `git commit -m "feat(scope): description"`
 5. Push and open a PR
