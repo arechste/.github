@@ -1,0 +1,122 @@
+# Category: project-ci (reusable workflow)
+name: Convention Check
+
+on:
+  workflow_call:
+    inputs:
+      check-pr-title:
+        description: 'Validate PR title matches conventional commit format'
+        type: boolean
+        default: true
+      check-commits:
+        description: 'Validate commit messages follow conventional format'
+        type: boolean
+        default: true
+      require-labels:
+        description: 'Require at least one type/* label on the PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  convention-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        if: inputs.check-pr-title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Conventional commit format: type(scope): description
+          # Also accepts: type: description (no scope)
+          # Types: feat, fix, refactor, docs, test, chore, ci, perf, style, build, revert, wip
+          pattern='^(feat|fix|refactor|docs|test|chore|ci|perf|style|build|revert|wip)(\([a-zA-Z0-9._-]+\))?!?: .+'
+
+          if [[ "${PR_TITLE}" =~ ${pattern} ]]; then
+            echo "✅ PR title follows conventional format: ${PR_TITLE}"
+          else
+            echo "❌ PR title does not follow conventional commit format."
+            echo ""
+            echo "Expected: type(scope): description"
+            echo "Got:      ${PR_TITLE}"
+            echo ""
+            echo "Valid types: feat, fix, refactor, docs, test, chore, ci, perf, style, build, revert, wip"
+            echo "Examples:"
+            echo "  feat(auth): add login endpoint"
+            echo "  fix: resolve null pointer in parser"
+            echo "  docs(readme): update installation steps"
+            exit 1
+          fi
+
+      - name: Check commit messages
+        if: inputs.check-commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pattern='^(feat|fix|refactor|docs|test|chore|ci|perf|style|build|revert|wip)(\([a-zA-Z0-9._-]+\))?!?: .+'
+          merge_pattern='^Merge '
+
+          commits=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" --jq '.[].commit.message' 2>/dev/null || echo "")
+
+          if [[ -z "${commits}" ]]; then
+            echo "⚠️ Could not fetch commits, skipping check"
+            exit 0
+          fi
+
+          failed=0
+          total=0
+          while IFS= read -r msg; do
+            # Only check first line of commit message
+            first_line=$(echo "${msg}" | head -1)
+            total=$((total + 1))
+
+            # Skip merge commits
+            if [[ "${first_line}" =~ ${merge_pattern} ]]; then
+              echo "⏭️ Skipping merge commit: ${first_line}"
+              continue
+            fi
+
+            if [[ "${first_line}" =~ ${pattern} ]]; then
+              echo "✅ ${first_line}"
+            else
+              echo "❌ ${first_line}"
+              failed=$((failed + 1))
+            fi
+          done <<< "${commits}"
+
+          if [[ ${failed} -gt 0 ]]; then
+            echo ""
+            echo "❌ ${failed}/${total} commits do not follow conventional format."
+            echo "Note: These will be squashed on merge. Ensure the PR title is correct."
+            # Warning only — don't fail the check for commit messages
+            # since squash merge uses PR title as the final commit message
+          else
+            echo ""
+            echo "✅ All ${total} commits follow conventional format."
+          fi
+
+      - name: Check required labels
+        if: inputs.require-labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          labels=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" --jq '[.labels[].name] | join(",")')
+
+          has_type=false
+          IFS=',' read -ra label_array <<< "${labels}"
+          for label in "${label_array[@]}"; do
+            if [[ "${label}" == type/* ]]; then
+              has_type=true
+              echo "✅ Found type label: ${label}"
+            fi
+          done
+
+          if [[ "${has_type}" != "true" ]]; then
+            echo "❌ No type/* label found on this PR."
+            echo ""
+            echo "Please add one of: type/feature, type/fix, type/refactor, type/docs, type/test, type/ci, type/chore, type/security, type/config"
+            exit 1
+          fi
