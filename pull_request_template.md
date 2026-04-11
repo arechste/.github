@@ -16,4 +16,4 @@ Fixes # <!-- issue number -->
 - [ ] Tests pass (if applicable)
 - [ ] No secrets or credentials included
 
-<!-- AI-assisted? Add: Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com> -->
+<!-- AI-assisted? Add: Co-Authored-By: Claude/{model}/{identity}@{hostname} <noreply@anthropic.com> -->
