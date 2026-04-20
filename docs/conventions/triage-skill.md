@@ -41,6 +41,7 @@ gh issue list --state open --limit 50 \
 - Group by milestone (if assigned), then by primary label group (`type/*`, `priority/*`)
 - Sort by priority (critical > high > medium > low), then by last updated
 - Present a summary table: `#`, Title, Labels, Milestone, Priority, Last Updated
+- If the repo uses sub-issues: detect `meta/tracking` issues and render with parent-grouping (see below)
 
 ### 3. Milestone readiness
 
@@ -98,6 +99,24 @@ Check delegated issues for the **current repo only** (not globally). Cross-repo 
 
 For repos that have a `data/delegated-issues.json` (like git-organizer), also check outbound delegated status and flag stale items (>7 days open).
 
+## Parent-Grouping View
+
+When the repo uses sub-issues (issues with `meta/tracking` label), triage renders a grouped view:
+
+- Parent issues (with `meta/tracking`) show progress: `X/N done`
+- Sub-issues are indented under their parent with a `↳` prefix
+- Parents are NOT shown in the "pick up" prompt — they are tracking containers, not work units
+- Issues with no parent are displayed in the flat list as normal
+- Fall back to flat view if no `meta/tracking` issues exist
+
+The `gather-triage-data.sh` WAT tool returns `parent_issues: [{number, total, closed, open}]` for parent detection.
+
+```
+| # | Title | Labels | Milestone | Priority | Updated |
+| 235 | feat: adopt sub-issues [tracking] 2/6 done | ... | v1.18.0 | medium | ... |
+| ↳ 238 | feat(triage): parent-grouping view | ... | v1.18.0 | medium | ... |
+```
+
 ## Rules
 
 - Do NOT enter plan mode — triage is action-oriented
@@ -107,6 +126,7 @@ For repos that have a `data/delegated-issues.json` (like git-organizer), also ch
 - One issue per work session unless user requests batching
 - Flag delegated issues as priority — another repo may be blocked
 - Suggest `/release` when a milestone is at 100% (qualified by delegated issues)
+- Issues with `meta/tracking` label are NOT actionable — never suggest picking one up directly
 
 ## Output Format
 
