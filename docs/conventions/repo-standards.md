@@ -50,6 +50,7 @@ Every non-fork repo is scored on a 0-100 scale:
 - [ ] All recommended items above
 - [ ] .claude/settings.json with permission matrix
 - [ ] `fetch.prune=true` in gitconfig — keeps local tracking refs clean automatically
+- [ ] Merge-completion contract honored — skills invoke `tools/lib/complete-merge.sh` after `gh pr merge`; orphans recovered via `./tools/maintenance/prune-merged-branches.sh` (see [merge-completion.md](merge-completion.md))
 - [ ] No open critical/high Dependabot alerts
 - [ ] Pre-commit hooks configured
 - [ ] Renovate installed for dependency updates (see [dependency-management.md](dependency-management.md))
