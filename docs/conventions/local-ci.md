@@ -132,6 +132,21 @@ gh auth refresh -h github.com -s user
 Billing resets monthly on your GitHub account creation anniversary.
 Manual check: https://github.com/settings/billing/summary
 
+### Automated Weekly Check
+
+A remote Claude Code trigger runs `budget-monitor.sh --quick` every Monday
+09:00 UTC and files a `type/ci` issue in this repo when usage crosses 75%.
+
+- Trigger: `weekly-ci-budget-check` (id `trig_01DQokuHKATzgjzasBPLcRwL`)
+- Manage / update / disable: https://claude.ai/code/scheduled
+- Thresholds: `<50%` silent, `50–74%` breakdown only, `75–89%` opens
+  `priority/high` issue, `≥90%` opens `priority/critical` issue with
+  disable recommendations. Core 4 repos (git-organizer, dotclaude,
+  dotfiles, mac-organizer) are exempt from auto-disable recommendations.
+
+Prefer updating the trigger (via the URL above or `RemoteTrigger` API)
+over editing this section — the trigger is authoritative.
+
 ## Cross-Project Strategy
 
 This section describes how the layer model is applied across all repos under arechste/ management. It exists to answer one question: **"When I add a check, where does it run?"**
