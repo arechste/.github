@@ -1,6 +1,6 @@
 # Label Taxonomy
 
-Canonical label set managed by git-organizer. All non-fork repos get these 36 labels synced.
+Canonical label set managed by git-organizer. All non-fork repos get these 38 labels synced.
 
 ## Core Labels (9)
 
@@ -88,6 +88,16 @@ filed → ack → wip → review → done
 ```
 
 See `docs/conventions/delegation-protocol.md` for the full protocol spec.
+
+## Meta Labels (1)
+
+Non-actionable markers about the issue itself:
+
+| Label | Color | Description |
+|-------|-------|-------------|
+| meta/tracking | `#8B5A00` | Parent/tracking issue — not directly actionable; sub-issues execute the work |
+
+See `docs/conventions/issue-hierarchy.md` for when to use parent/sub-issue structure.
 
 ## Category Overrides
 
