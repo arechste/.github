@@ -68,6 +68,12 @@
         { "name": "delegation/done", "color": "0E8A16", "description": "Verified complete by source repo" },
         { "name": "delegation/blocked", "color": "B60205", "description": "Blocked — needs input from source or target" }
       ]
+    },
+    "meta": {
+      "description": "Meta-classification — non-actionable markers about the issue itself",
+      "labels": [
+        { "name": "meta/tracking", "color": "8B5A00", "description": "Parent/tracking issue — not directly actionable; sub-issues execute the work (see docs/conventions/issue-hierarchy.md)" }
+      ]
     }
   },
   "categoryOverrides": {
