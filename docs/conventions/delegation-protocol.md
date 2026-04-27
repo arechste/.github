@@ -13,6 +13,47 @@ Four core repos participate:
 | dotfiles | Adopts protocol. Accepts and responds to delegated work. |
 | mac-organizer | Adopts protocol. Accepts and responds to delegated work. |
 
+## Two Variants
+
+Cross-repo issues fall into two shapes. Pick the variant up front — they differ in labels, state machine, and who closes.
+
+| Variant | Intent | Labels | State machine | Closes when |
+|---------|--------|--------|---------------|-------------|
+| **Do-this-work** (default) | "Please do X in your repo." One repo owns the outcome; the other verifies. | `delegated` + `delegation/*` (full state machine) | `filed → ack → wip → review → done` | Source repo verifies and transitions `review → done` |
+| **Bilateral-spec** | "Let's align on X that affects both our repos." No single owner — both sides co-decide. | `delegated` only (no `delegation/*`) | None | Primary issue closes; mirror closes in lockstep |
+
+### Do-this-work variant
+
+The rest of this document (state machine, verification gate, feedback types, inbox tracking) describes the do-this-work variant. Filed via `tools/maintenance/delegate-issue.sh`.
+
+### Bilateral-spec variant
+
+For cross-repo spec discussions where two repos need to agree on an interface, convention, or boundary that neither repo owns alone (e.g., dotfiles ↔ mac-organizer responsibility split).
+
+**Pattern:**
+
+1. **Primary issue** in one repo carries the full proposal body, questions, and proposed defaults.
+2. **Mirror issue** in each counterpart repo carries a short pointer: "discussion lives in `owner/repo#N` — respond there."
+3. Both issues get the `delegated` label; no `delegation/*` state is applied.
+4. Discussion stays on the primary. Maintainers of each side ack, push back, or amend inline.
+5. When the primary closes, mirrors close in lockstep.
+
+**Rules:**
+
+- `delegation/*` labels MUST NOT be applied — there is no `wip`/`review` gate because no work product is being delivered to a delegator.
+- Mirrors MUST link to the primary with a clearly-labeled "Where to respond" section.
+- Mirror bodies SHOULD stay small — duplicated content causes divergence.
+- If a bilateral discussion produces work that one side must then execute, file a **separate** do-this-work issue for that execution. Don't retrofit state-machine labels onto the spec issue.
+- If one repo is the **convention authority** for one of the questions (git-organizer for labels, CI, delegation itself), file a sibling do-this-work issue in git-organizer alongside the bilateral. That issue uses the full state machine and closes once the ruling is documented. Example: dotfiles#583 and mac-organizer#218 are bilateral; git-organizer#343 is the paired authority issue.
+
+**When to pick which:**
+
+- If one repo can satisfy the acceptance criteria alone → **do-this-work**.
+- If acceptance requires agreement across repos before anyone acts → **bilateral-spec**.
+- Hybrid (spec + execution) → one bilateral + one or more do-this-work siblings.
+
+**Rationale:** ruled by #343 on 2026-04-21. Before formalization, mirror issues drifted toward the state machine ("should the mirror be `delegation/wip` while discussion is open?"), which never fit — neither side owns the work product. Separating the two variants keeps the state machine semantically clean (every transition corresponds to work delivered) and gives bilateral spec discussions their own, simpler protocol.
+
 ## State Machine
 
 Each delegated issue has exactly one `delegation/*` label at any time. Labels are swapped, not accumulated.
@@ -107,6 +148,53 @@ See TARGET-REPO#N for the completion report.
 - Post completion reports (that is the target's responsibility)
 
 Violations are detectable by `check-delegation-feedback.sh` (role validation on feedback types).
+
+## Alt-Paths
+
+The happy path (`filed → ack → wip → review → done`) covers most delegations. These are not protocol bugs — they are legitimate, rare close shapes where the full state machine would be misleading. Each alt-path has a defined owner, label sequence, and completion-report format so delegator and target agree on what happened without free-form notes.
+
+### Subsumed
+
+The work is folded into a different or larger issue; no separate PR exists for this delegation.
+
+**When:** The target repo discovers the delegated change is already being made as part of a broader effort, and splitting it out would create churn or duplication.
+
+**Who acts:**
+1. **Target repo** transitions `→ delegation/review` and posts a completion report:
+   - `artifacts`: the absorbing issue/PR reference (e.g., `owner/repo#N`)
+   - `validation`: confirmation the delegated scope is covered by the absorbing work
+   - `deviations`: `subsumed by <owner/repo#N> — no standalone PR`
+2. **Source repo** verifies the absorbing issue/PR covers the acceptance criteria, then transitions `delegation/review → done` and closes.
+
+**Note:** The source repo closes the original delegated issue — never the target.
+
+### Not-planned / Closed-not-planned
+
+The underlying premise changed — decision reversed, scope dropped, dependency replaced — so the work will not be done.
+
+**When:** The target repo or delegator determines the delegation is no longer valid (e.g., the feature it supported was removed, an ADR was superseded, the approach was abandoned).
+
+**Who acts:**
+1. **Either repo** can initiate: post a `[Info]` feedback comment explaining the premise change. Tag the other repo for acknowledgement.
+2. **Source repo** transitions `→ delegation/done` and closes the issue as "not planned" via GitHub's close-as-not-planned option.
+3. Completion report is posted by whichever side is closing: `deviations: closed-not-planned — <one-line reason>`.
+
+**Note:** `delegation/review` is skipped — there is no work product to verify. The source repo closes directly after both sides acknowledge.
+
+### Closed-without-review
+
+The target repo closed the issue (e.g., GitHub auto-close via a linked PR, or a direct close) without going through `delegation/review`. The delegator must backfill verification.
+
+**When:** Typically a protocol miss — `Fixes #N` was used in a PR, or the issue was manually closed before posting the completion report.
+
+**Who detects:** `check-delegation-feedback.sh` surfaces closed issues still at `delegation/wip` or `delegation/ack` (no `review` transition on record).
+
+**Backfill procedure:**
+1. **Source repo** checks whether the work was actually completed (review the linked PR, commit, or target branch).
+2. If verified complete: transition the closed issue's label to `delegation/done`, post a `[Review]` feedback comment confirming backfill, and update `delegated-issues.json` with `deviations: closed-without-review — verified via <PR/commit ref>`.
+3. If NOT verified: reopen the issue, post a `[Blocker]` comment requesting a completion report, transition back to `delegation/wip`.
+
+**Prevention:** Always post a completion report and transition to `delegation/review` before any close path. Never use `Fixes #N` / `Closes #N` in PR bodies for delegated issues.
 
 ## Structured Feedback
 
@@ -260,23 +348,95 @@ Each delegated issue in `delegated-issues.json` may specify a `verifyMethod` and
 ### git-organizer (authoritative)
 
 - Label definitions in `data/label-definitions.json`
-- Schema at `data/schemas/delegation-inbox.schema.json`
-- Reference script: `tools/maintenance/check-delegation-feedback.sh`
+- Canonical schemas: `data/schemas/delegated-issues.schema.json` and `data/schemas/delegation-inbox.schema.json`
+- Reference scripts: `tools/maintenance/check-delegation-feedback.sh`, `check-delegated-issues.sh`, `delegate-issue.sh`
 - Convention doc (this file)
 - `delegate-issue.sh` auto-applies `delegation/filed` + `delegated`
 
-### dotclaude (distributor)
+### dotclaude (distributor / catalyst)
 
-- Propagates labels to downstream repos via `dc:sync-conventions`
-- Propagates inbox file + schema to downstream repos
+- Carries the canonical-schema mirror at `data/schemas/{delegated-issues,delegation-inbox}.schema.json` (synced via `dc:sync-conventions schemas`)
+- Cross-machine availability — dotclaude lives on every fleet machine, so its mirror is the always-reachable copy
+- Propagates labels and inbox/outbox-file conventions to downstream repos
 - Extends session-start hooks to detect inbound `delegation/filed`, auto-ack
 - Posts structured feedback comments when completing work
+- `/dc:delegate` skill writes tracker entries conforming to the canonical schema
 
 ### dotfiles / mac-organizer (adopters)
 
-- Accept synced labels, inbox file, and schema from dotclaude
+- Maintain their own `data/delegated-issues.json` and `data/delegation-inbox.json` tracker files (data, not schema)
+- Tracker `$schema` fields point at dotclaude's mirror (raw URL); validators resolve locally to `~/dotclaude/data/schemas/`
+- Do NOT carry their own `data/schemas/` directory
 - Session-start hooks detect and report inbound delegated issues
 - Post structured feedback when completing delegated work
+
+## Schema Authority
+
+This section codifies the cross-repo schema topology established 2026-04-26 (parent issue: `chore(delegation): standardize tracker schemas across fleet`).
+
+### Canonical files (git-organizer)
+
+| File | Purpose |
+|---|---|
+| `data/schemas/delegated-issues.schema.json` | Outbound delegation tracker — issues this repo filed in others |
+| `data/schemas/delegation-inbox.schema.json` | Inbound feedback tracker — structured comments on delegated issues |
+
+git-organizer is the only repo authorized to **edit** these schemas. All changes flow downstream from here.
+
+### Distribution (dotclaude)
+
+dotclaude carries a synced mirror at the same paths, with a top-level `$comment` provenance marker:
+
+```
+"$comment": "Source: git-organizer/data/schemas/<file>. Mirrored via dc:sync-conventions schemas. Do not edit here — propose changes upstream."
+```
+
+Run `dc:sync-conventions schemas` in dotclaude to refresh the mirror. The skill diffs against git-organizer's source and prompts before writing.
+
+### Tracker shape (every repo)
+
+Tracker files (the data, not the schema) live in each repo's `data/` directory. Both files MUST use a wrapper-object root:
+
+| File | Canonical shape |
+|---|---|
+| `data/delegated-issues.json` | `{ "$schema": "<url>", "issues": [...] }` |
+| `data/delegation-inbox.json` | `{ "$schema": "<url>", "version": "1.0.0", "lastChecked": null, "entries": [...] }` |
+
+Bare-array form (`[ ... ]`) is INVALID. The `/dc:delegate` skill initializes a missing tracker from the wrapper template before appending. Tools that read these files (`check-delegated-issues.sh`, `check-delegation-feedback.sh`) require the wrapper.
+
+### Adopter `$schema` reference
+
+Adopter repos (dotfiles, mac-organizer) do NOT carry a local `data/schemas/` directory. Their tracker files reference dotclaude's mirror via raw URL:
+
+```
+"$schema": "https://raw.githubusercontent.com/arechste/dotclaude/main/data/schemas/delegated-issues.schema.json"
+```
+
+Validators rarely fetch this URL (all repos private — auth required), but the URL identifies the contract. Tools resolve the schema locally via `~/dotclaude/data/schemas/...` since dotclaude is on every fleet machine.
+
+### `delegation-outbox.json` is DEPRECATED
+
+The legacy `data/delegation-outbox.json` file (different shape from `delegated-issues.json`) is deprecated. The `/dc:delegate` skill explicitly does not write to it. Per the parent tracking issue:
+
+1. Each repo migrates outbox entries into `delegated-issues.json` (mapping below).
+2. Each repo deletes `delegation-outbox.json`.
+3. Removal is gated on convergence — no unilateral cleanup.
+
+Outbox-to-issues field mapping:
+
+| outbox field | issues field | notes |
+|---|---|---|
+| (derive) | `id` | `<repo>-<title-slug>-<issueNumber>` |
+| `targetRepo` short name | `repo` | strip `arechste/` |
+| extract `N` from `issueRef` | `issueNumber` | `arechste/dotclaude#383` → 383 |
+| `title` | `title` | |
+| `done` → `closed`; else → `open` | `status` | |
+| `done` → `done`; else → `filed` | `delegationState` | |
+| `filedAt` | `filedAt` | |
+| `closedAt` or null | `closedAt` | |
+| null | `lastChecked`, `lastNudgedAt`, `verified`, `verifiedAt` | |
+| `manual` | `verifyMethod` | |
+| null | `verifyTarget`, `verifyPattern`, `completionReport` | |
 
 ## Cross-Repo Flow Example
 
