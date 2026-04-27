@@ -52,8 +52,11 @@ Hooks run automatically on `git commit`. They catch:
 `act` reads `.github/workflows/` directly and runs them in Docker containers.
 
 ```bash
-# Run all local-compatible checks
+# Run all local-compatible checks (includes billing/usage)
 ./tools/ci/local-check.sh
+
+# Pre-push gate — recommended before `git push`. pre-commit + act, non-zero on fail.
+./tools/ci/local-check.sh --before-push && git push
 
 # Pre-commit only (no Docker needed)
 ./tools/ci/local-check.sh --pre-commit-only
@@ -64,6 +67,8 @@ Hooks run automatically on `git commit`. They catch:
 # Check GitHub Actions billing/usage
 ./tools/ci/local-check.sh --usage
 ```
+
+**`--before-push` vs default mode**: both run pre-commit + act. `--before-push` exits non-zero on any failure (chainable with `&& git push`) and skips the usage summary. The default mode prints usage and returns the combined exit code but is less intent-revealing at call sites.
 
 ### What runs locally vs remotely
 
