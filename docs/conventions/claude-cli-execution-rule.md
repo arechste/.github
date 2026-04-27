@@ -1,6 +1,8 @@
 # CLI Execution Standard
 
-Canonical patterns for git/gh/GitHub operations in Claude sessions. Authored by git-organizer (domain expert). Full reference: `docs/conventions/claude-cli-execution.md`.
+Canonical patterns for git/gh/GitHub operations in Claude sessions. Authored by git-organizer (domain expert).
+
+**Relationship to full reference**: This is the distributable rule — concise, suitable for inclusion in consuming repos via `additionalDirectories`. The authoritative full reference (with detailed patterns, permission-matcher guidance, and examples) lives at `docs/conventions/claude-cli-execution.md` in git-organizer.
 
 ## Bash Discipline
 
