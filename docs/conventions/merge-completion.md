@@ -21,19 +21,31 @@ Verified against `gh version 2.90.0+` (stable since 2025). Dogfooded on this rep
 Every repo that predates the `--delete-branch` habit has a pile of orphan local branches. `tools/maintenance/prune-merged-branches.sh` (aka `/prune` skill) iterates them, verifies each against the base via local patch-id detection, and deletes the confirmed-merged ones.
 
 - `--dry-run` default; `--yes` for live; `--confirm-via-api` for zero-false-positive mode
-- Logs every deletion to `data/audit-log.json`
+- Logs every deletion to the local-only `data/audit-log.json` (see `docs/conventions/audit-log-storage.md`)
 
 Use `/prune` periodically or when `git branch` output gets noisy.
 
-## Audit logging — opt-in via `complete-merge.sh`
+## Optional verification wrapper — `complete-merge.sh`
 
-Skills that want a per-merge audit entry (`data/audit-log.json`) can call `./tools/lib/complete-merge.sh <branch>` after `gh pr merge`. The wrapper:
+`./tools/lib/complete-merge.sh <branch>` is an optional wrapper around the same cleanup `gh pr merge --delete-branch` performs, with squash-merge verification and a local audit-log entry. Useful when the merge happened outside `gh pr merge` (GitHub UI, scripted merge without `--delete-branch`).
 
-1. Verifies the branch is squash-merged via the shared detector
-2. Is idempotent against cleanup `gh --delete-branch` already did (switch, pull, branch-D all no-op if already clean)
-3. Logs `{branch, base, mergeBase, method}` to the audit file
+The wrapper handles two states, resolved automatically:
 
-This is **optional**. Skills that don't need the audit trail can skip it. The wrapper adds value only if you want the log entry.
+**Branch ref present** (wrapper ran before `--delete-branch`, or `--delete-branch` was omitted):
+
+1. Verifies the branch is squash-merged via the shared detector (local, no network)
+2. Switches to base, pulls, force-deletes the local branch
+3. Logs `{branch, base, mergeBase, method: "cherry"}` to the local audit file
+
+**Branch ref absent** (wrapper ran after `gh pr merge --delete-branch` — idempotent path):
+
+1. Attests the merge via `gh pr list --state merged --head <branch>` (one API call). Since `--delete-branch` only removes the branch after a successful merge, a merged PR with that head is proof-of-merge.
+2. Switches to base and pulls (both no-ops if `--delete-branch` already did them)
+3. Logs `{branch, base, prNumber, squashCommit, method: "post-delete-branch"}`
+
+The audit log (`data/audit-log.json`) is local-only and gitignored — see `docs/conventions/audit-log-storage.md`. Both paths are idempotent; calling the wrapper twice (or after full cleanup) is safe.
+
+This is **optional**. Skills that don't need the local audit entry can skip it entirely.
 
 ## Detection algorithm
 
