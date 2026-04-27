@@ -112,6 +112,17 @@ Encrypted backup of sensitive gitignored data before clone removal.
 - `ws vault list` — show vaulted repos
 - `ws vault restore <repo>` — decrypt and copy back after re-clone
 
+## Fleet distribution
+
+Two repos are **chezmoi-distributed** — their working tree feeds files that chezmoi deploys to user-facing locations:
+
+- `dotclaude` → deploys to `~/.claude/` (skills, rules, hooks)
+- `dotfiles` → deploys to `~/.config/`, `~/.zshrc`, etc.
+
+A merged PR in either repo only updates the source. Each consuming machine must run `chezmoi apply` for the change to be in effect. See `docs/conventions/fleet-sync.md` for the full loop and per-machine roles.
+
+Other repos (`git-organizer`, `mac-organizer`) are not chezmoi-distributed — pulling main is enough.
+
 ## Multi-Machine
 
 Both arechste-mini and tutnix use the same `ws` tooling (deployed via chezmoi). Clones are independent per machine — no automatic sync between them.
@@ -212,6 +223,60 @@ git fetch --prune
 - `isolation: worktree` in agent frontmatter gives each subagent its own worktree
 - No-change worktrees are removed automatically; changed worktrees prompt user
 - `git worktree list --porcelain` provides machine-readable output for scripting
+
+### Multi-Session Safety
+
+**Problem:** Two Claude sessions (or a Claude session + a human) running in the same working tree share one `HEAD`. A `git switch`, `git pull`, or `git checkout` in either session silently flips HEAD for everyone. Uncommitted changes appear to "follow" the switch because git keeps them in the index — the confusion is only discovered at the next `git status`. This is what happened during PR #416 (#411): a parallel session flipped HEAD back to `main` mid-task; recovery was clean only because the user spotted it before staging.
+
+**Resolution: one worktree per parallel session (mandatory standard as of #417).**
+
+#### Before opening a second session
+
+```bash
+# Option A (preferred): create a worktree for the new work
+git worktree add -b feat/N-slug .claude/worktrees/slug main
+# Then open the second session with its working directory set to .claude/worktrees/slug/
+
+# Option B (fallback): use a separate clone
+gh repo clone arechste/git-organizer ~/airepos/claude/cowork/git-organizer-2
+```
+
+Never open a second Claude session pointing at the same working tree without first isolating it into a worktree.
+
+#### Detecting peer sessions
+
+```bash
+# Count active worktrees (1 = just main tree, >1 = peer worktrees exist)
+git worktree list --porcelain | grep -c '^worktree'
+
+# List all worktrees with their branch
+git worktree list
+```
+
+If count > 1, confirm no other session is live before switching branches in the main tree.
+
+#### Advisory lock (soft enforcement)
+
+The dotclaude `PreToolUse` hook writes `.git/.claude-session-lock` (PID + branch + timestamp) when a session starts a `git switch` or `git pull`. On the next `git switch` / `git pull` / `git checkout`, the hook:
+
+1. Checks for a stale or peer lock
+2. Warns if a different branch/session is recorded
+3. Does **not** hard-block (the worktree standard is the primary defense)
+
+Lock file format:
+```
+pid=<PID>
+branch=<current-branch>
+started=<ISO-timestamp>
+```
+
+Stale lock detection: if `kill -0 <PID>` exits non-zero, the lock is orphaned and safe to remove.
+
+#### What NOT to do
+
+- Do not tell a user that parallel sessions in the same working tree are safe — they share HEAD
+- Do not assure that uncommitted changes won't be affected by a peer session's `git switch`
+- Do not skip worktree setup to "save time" — the recovery cost is higher than the setup cost
 
 ## Tooling Ownership
 
