@@ -72,7 +72,7 @@
     "meta": {
       "description": "Meta-classification — non-actionable markers about the issue itself",
       "labels": [
-        { "name": "meta/tracking", "color": "8B5A00", "description": "Parent/tracking issue — not directly actionable; sub-issues execute the work (see docs/conventions/issue-hierarchy.md)" }
+        { "name": "meta/tracking", "color": "8B5A00", "description": "Parent/tracking issue — sub-issues execute the work (issue-hierarchy.md)" }
       ]
     }
   },
@@ -85,11 +85,21 @@
         { "name": "tool/mise", "color": "FBCA04", "description": "mise runtime manager" },
         { "name": "tool/1password", "color": "FBCA04", "description": "1Password integration" },
         { "name": "tool/fabric", "color": "FBCA04", "description": "Fabric AI patterns" },
-        { "name": "machine/all", "color": "C5DEF5", "description": "Affects all machines" },
-        { "name": "machine/arechste-mini", "color": "C5DEF5", "description": "Mac Mini specific" },
-        { "name": "machine/tutnix", "color": "C5DEF5", "description": "MacBook specific" },
-        { "name": "machine/corp", "color": "C5DEF5", "description": "Corporate machine specific" },
-        { "name": "machine/linux", "color": "C5DEF5", "description": "Linux machine specific" }
+        { "name": "machine/all", "color": "C5DEF5", "description": "Every host — fan out at triage (see machine-labels.md)" },
+        { "name": "machine/any", "color": "C5DEF5", "description": "Any single host may pick it up (no fan-out)" },
+        { "name": "machine/linux", "color": "C5DEF5", "description": "Placeholder — reserved until Linux hosts are registered" },
+        { "name": "machine/arechste-mini", "color": "C5DEF5", "description": "Host arechste-mini (personal-desktop)" },
+        { "name": "machine/tutnix", "color": "C5DEF5", "description": "Host tutnix (personal-laptop)" },
+        { "name": "machine/fragtnix", "color": "C5DEF5", "description": "Host fragtnix (personal-desktop)" },
+        { "name": "machine/cr61790dfv", "color": "C5DEF5", "description": "Host cr61790dfv (corp-laptop)" },
+        { "name": "machine/machtnix", "color": "C5DEF5", "description": "Host machtnix (personal, pending deployment)" },
+        { "name": "machine/merktnix", "color": "C5DEF5", "description": "Host merktnix (personal-desktop, planned replacement)" },
+        { "name": "machine/all-personal", "color": "C5DEF5", "description": "Every personal host — fan out at triage" },
+        { "name": "machine/any-personal", "color": "C5DEF5", "description": "Any one personal host (no fan-out)" },
+        { "name": "machine/all-corp", "color": "C5DEF5", "description": "Every corp host — fan out at triage" },
+        { "name": "machine/any-corp", "color": "C5DEF5", "description": "Any one corp host (no fan-out)" },
+        { "name": "machine/corp-laptop", "color": "C5DEF5", "description": "Alias for host cr61790dfv" },
+        { "name": "machine/iswork", "color": "C5DEF5", "description": "Alias for host cr61790dfv" }
       ]
     },
     "learning": {
