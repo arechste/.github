@@ -105,7 +105,19 @@ Some repo categories get additional labels:
 
 **Infrastructure repos** also get:
 - `tool/chezmoi`, `tool/homebrew`, `tool/mise`, `tool/1password`, `tool/fabric`
-- `machine/all`, `machine/arechste-mini`, `machine/tutnix`, `machine/corp`, `machine/linux`
+- `machine/*` — see `docs/conventions/machine-labels.md`
+
+The `machine/*` family is resolved via `data/machine-groups.json` (literals, aliases, quantified roles) and consumed by the session-start hook, `/work`, `/batch`, `/triage`, and `tools/maintenance/fanout-issue.sh`. Three kinds coexist under one family:
+
+- Literal hostnames (e.g., `machine/cr61790dfv`)
+- Aliases (e.g., `machine/corp-laptop` → `cr61790dfv`)
+- Quantified roles (e.g., `machine/all-personal`, `machine/any-corp`)
+
+See `docs/conventions/machine-labels.md` for the resolver algorithm, pickup rule, fan-out rule, and how to add a new host / role / alias.
+
+**Ruling history:**
+- 2026-04-21 (#343, #351 Q1): initial ruling forbade role-shaped `machine/*` labels in favor of hostname-only.
+- 2026-04-21 (#354): **superseded.** The hostname-only rule did not support human-memorable aliases or role-based fan-out. Replaced with the resolver model described in `machine-labels.md`.
 
 ## Sync Rules
 
@@ -128,3 +140,27 @@ Some repo categories get additional labels:
 ./tools/labels/bulk-label-audit.sh
 ./tools/labels/bulk-label-audit.sh --category active
 ```
+
+## Integration with dc:sync-conventions
+
+Label drift detection is a first-class step in the `dc:sync-conventions` skill so adopter repos get it alongside rule/template sync rather than requiring separate `sync-labels.sh` invocations.
+
+```
+# Show label drift for the current repo (dry-run — no changes applied)
+/dc:sync-conventions labels
+
+# Apply label changes after reviewing the dry-run diff
+/dc:sync-conventions labels --apply
+
+# Full sync (rules + templates + labels) — labels shown as dry-run
+/dc:sync-conventions all
+```
+
+Behavior of the labels step:
+- **Dry-run by default**: shows Missing / Mismatched / Extra diff; no writes.
+- **--apply**: creates missing labels, updates mismatched color/description.
+- **Respects category overrides**: infrastructure repos also get `machine/*` and `tool/*` labels; others get core + type + priority + status + agent + delegation + meta.
+- **Extra labels kept**: project-specific labels are reported but never auto-deleted. Pass `--delete-extra` to `./tools/labels/sync-labels.sh` for that.
+- **`all` mode**: runs labels as dry-run — surfaces drift without applying, alongside rule/template diffs.
+
+This closes the gap that caused `machine/*` drift in #343 — adopter repos now detect label drift on every `dc:sync-conventions` run.
