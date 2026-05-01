@@ -21,13 +21,12 @@ Verified against `gh version 2.90.0+` (stable since 2025). Dogfooded on this rep
 Every repo that predates the `--delete-branch` habit has a pile of orphan local branches. `tools/maintenance/prune-merged-branches.sh` (aka `/prune` skill) iterates them, verifies each against the base via local patch-id detection, and deletes the confirmed-merged ones.
 
 - `--dry-run` default; `--yes` for live; `--confirm-via-api` for zero-false-positive mode
-- Logs every deletion to the local-only `data/audit-log.json` (see `docs/conventions/audit-log-storage.md`)
 
 Use `/prune` periodically or when `git branch` output gets noisy.
 
 ## Optional verification wrapper — `complete-merge.sh`
 
-`./tools/lib/complete-merge.sh <branch>` is an optional wrapper around the same cleanup `gh pr merge --delete-branch` performs, with squash-merge verification and a local audit-log entry. Useful when the merge happened outside `gh pr merge` (GitHub UI, scripted merge without `--delete-branch`).
+`./tools/lib/complete-merge.sh <branch>` is an optional wrapper around the same cleanup `gh pr merge --delete-branch` performs, with squash-merge verification. Useful when the merge happened outside `gh pr merge` (GitHub UI, scripted merge without `--delete-branch`).
 
 The wrapper handles two states, resolved automatically:
 
@@ -35,17 +34,15 @@ The wrapper handles two states, resolved automatically:
 
 1. Verifies the branch is squash-merged via the shared detector (local, no network)
 2. Switches to base, pulls, force-deletes the local branch
-3. Logs `{branch, base, mergeBase, method: "cherry"}` to the local audit file
 
 **Branch ref absent** (wrapper ran after `gh pr merge --delete-branch` — idempotent path):
 
 1. Attests the merge via `gh pr list --state merged --head <branch>` (one API call). Since `--delete-branch` only removes the branch after a successful merge, a merged PR with that head is proof-of-merge.
 2. Switches to base and pulls (both no-ops if `--delete-branch` already did them)
-3. Logs `{branch, base, prNumber, squashCommit, method: "post-delete-branch"}`
 
-The audit log (`data/audit-log.json`) is local-only and gitignored — see `docs/conventions/audit-log-storage.md`. Both paths are idempotent; calling the wrapper twice (or after full cleanup) is safe.
+Both paths are idempotent; calling the wrapper twice (or after full cleanup) is safe.
 
-This is **optional**. Skills that don't need the local audit entry can skip it entirely.
+This is **optional**. Skills that don't need the squash-merge verification can skip it entirely.
 
 ## Detection algorithm
 
@@ -113,7 +110,7 @@ Both tools have scoped permission entries. `git branch -D` is denied globally so
 
 ## Routines / `/schedule`
 
-Interactive-only for v1. Hosted VMs for scheduled agents do not load `.claude/rules/*` or hooks, so neither `--delete-branch` habit nor the audit wrapper is enforced there. Any scheduled cleanup path must embed its own safety (see `docs/reference/routines-policy.md`) — explicit follow-up work.
+Interactive-only for v1. Hosted VMs for scheduled agents do not load `.claude/rules/*` or hooks, so the `--delete-branch` habit is not enforced there. Any scheduled cleanup path must embed its own safety (see `docs/reference/routines-policy.md`) — explicit follow-up work.
 
 ## Model tier
 
@@ -122,4 +119,4 @@ Interactive-only for v1. Hosted VMs for scheduled agents do not load `.claude/ru
 
 ## History
 
-The initial v1 contract (PR #273) required every merge-completing skill to call `complete-merge.sh`. Dogfooding on dotclaude (#571 → #578) showed the premise — that `--delete-branch` leaves orphans — was wrong. Revised here (#281) to: `--delete-branch` handles prevention; the wrapper is an opt-in audit path.
+The initial v1 contract (PR #273) required every merge-completing skill to call `complete-merge.sh`. Dogfooding on dotclaude (#571 → #578) showed the premise — that `--delete-branch` leaves orphans — was wrong. Revised here (#281) to: `--delete-branch` handles prevention; the wrapper is an opt-in squash-merge verifier (originally also an audit-log writer; the audit-log was retired in #392).
