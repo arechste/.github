@@ -89,15 +89,16 @@ filed → ack → wip → review → done
 
 See `docs/conventions/delegation-protocol.md` for the full protocol spec.
 
-## Meta Labels (1)
+## Meta Labels (2)
 
 Non-actionable markers about the issue itself:
 
 | Label | Color | Description |
 |-------|-------|-------------|
 | meta/tracking | `#8B5A00` | Parent/tracking issue — not directly actionable; sub-issues execute the work |
+| meta/ledger | `#8B5A00` | Permanent ledger — write target for tooling; never closes, excluded from pickup/release |
 
-See `docs/conventions/issue-hierarchy.md` for when to use parent/sub-issue structure.
+See `docs/conventions/issue-hierarchy.md` for parent/sub-issue structure and `docs/conventions/ledger-issues.md` for ledger semantics.
 
 ## Category Overrides
 
