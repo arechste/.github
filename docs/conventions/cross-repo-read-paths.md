@@ -42,7 +42,7 @@ Running as user `arechste` on macOS, everything under `$HOME` with default permi
 
 - Other user home directories (`/Users/<other>/`)
 - System-restricted paths (`/private/var/db/`, `/Library/Keychains/`, etc.)
-- Secrets on disk: `*.pem`, `*-key.json`, `.env` files (readable by OS, but **never read** by Claude — see `rules/secrets.md`)
+- Secrets on disk: `*.pem`, `*-key.json`, `.env` files (readable by OS, but **never read** by Claude — see `docs/conventions/secrets-audit.md`)
 - Anything under `sops`-encrypted or `age`-encrypted at rest (don't decrypt)
 
 ## When to use this doc
@@ -55,4 +55,4 @@ Running as user `arechste` on macOS, everything under `$HOME` with default permi
 
 - `rules/permission-tiers.md` — autonomy levels (read/write boundaries)
 - `docs/conventions/permission-matrix.md` — action matrix, shadowing rules
-- `rules/secrets.md` — what never to read regardless of grants
+- `docs/conventions/secrets-audit.md` — what never to read regardless of grants
