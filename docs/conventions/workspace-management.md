@@ -25,7 +25,7 @@ Sub-trees under `~/airepos/claude/`:
 
 ### Machine-specific paths
 
-Personal machines (arechste-mini, tutnix) get the full tree. Work machines omit `~/repos/gitlab.com/` and vendor-specific airepos directories. Controlled by chezmoi conditionals (`{{ if not .isWork }}`).
+Personal machines (merktnix, tutnix) get the full tree. Work machines omit `~/repos/gitlab.com/` and vendor-specific airepos directories. Controlled by chezmoi conditionals (`{{ if not .isWork }}`).
 
 ## Clone Lifecycle
 
@@ -125,7 +125,7 @@ Other repos (`git-organizer`, `mac-organizer`) are not chezmoi-distributed — p
 
 ## Multi-Machine
 
-Both arechste-mini and tutnix use the same `ws` tooling (deployed via chezmoi). Clones are independent per machine — no automatic sync between them.
+Both merktnix and tutnix use the same `ws` tooling (deployed via chezmoi). Clones are independent per machine — no automatic sync between them.
 
 ### Compare (future)
 
@@ -143,7 +143,7 @@ File: `~/.local/share/workspace/clones.json`
 
 ```json
 {
-  "machine": "arechste-mini",
+  "machine": "merktnix",
   "clones": [
     {
       "repo": "arechste/git-organizer",
@@ -164,7 +164,7 @@ The `localClones` field in repo-inventory.json aggregates clone data across mach
 {
   "name": "git-organizer",
   "localClones": [
-    { "machine": "arechste-mini", "path": "~/repos/github.com/arechste/git-organizer", "lastSeen": "2026-03-14T08:00:00Z" },
+    { "machine": "merktnix", "path": "~/repos/github.com/arechste/git-organizer", "lastSeen": "2026-03-14T08:00:00Z" },
     { "machine": "tutnix", "path": "~/repos/github.com/arechste/git-organizer", "lastSeen": "2026-03-12T15:00:00Z" }
   ]
 }
