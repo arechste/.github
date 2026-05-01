@@ -61,10 +61,11 @@ All `govern-closure.sh` runs enforce:
 1. **Dry-run by default**: `--dry-run` is implied unless `--apply` is passed explicitly.
 2. **Max closures per run**: `--max-closures N` (default 5). Prevents runaway loops on a full
    inventory scan. Remaining repos are listed in output with an explanation.
-3. **Audit logging**: every closure (PR opened, issue filed, delegation created) is written to
-   `data/audit-log.json` via `log_audit` in `tools/lib/gh-helpers.sh`.
+3. **Artifact-as-evidence**: every closure produces a durable GitHub artifact — a PR, an issue,
+   or a delegation — which is the closure's record. No separate audit log is written; the
+   artifact's URL is the receipt.
 4. **Re-run verification**: after closure, re-run the originating audit tool. If the signal still
-   appears, the closure is flagged as incomplete in the audit log.
+   appears, the closure is incomplete and visible on the next run.
 
 ## Planned Closures (not yet wired)
 
