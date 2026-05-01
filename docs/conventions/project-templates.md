@@ -1,14 +1,15 @@
 # Project Templates
 
-Governed templates for GitHub Projects v2. Three project types serve different scopes.
+Governed templates for GitHub Projects v2. Two project types serve different scopes.
+
+> **Cross-repo overview note** — Program-level tracking (formerly Project #15 "Core Infrastructure") is **retired**. Cross-repo visibility is now produced by `tools/audit/cross-repo-status.sh` per [`oversight-strategy.md`](oversight-strategy.md). The Global template (Project #12) remains for triage workflows.
 
 ## Project Types
 
 | Type | Scope | When to use |
 |------|-------|-------------|
 | **Global** | All repos (or a broad set) | Portfolio-level triage, status tracking, bug oversight |
-| **Program** | Related group of repos | Cross-repo coordination, dependency tracking, shared roadmap |
-| **Repo** | Single repo | Only when a repo needs its own board (most should use Global or Program) |
+| **Repo** | Single repo | Only when a repo needs its own board (most should use Global) |
 
 ## Shared Field Schema
 
@@ -81,31 +82,6 @@ Label-to-status sync (e.g., `status/ready` → Ready column) is not natively sup
 
 **Live instance:** "arechste: All Issues" (project #12)
 
-## Program Template
-
-**Purpose:** Cross-repo coordination for a related group of repos.
-
-**Additional fields:**
-
-| Field | Type | Values | Why |
-|-------|------|--------|-----|
-| Agent | Single select | Configurable per program | Workload by agent identity |
-| Blocked By | Text | Free text | Cross-repo dependency refs |
-
-**Auto-add:** One rule per member repo (`is:issue is:open repo:owner/name`).
-
-**Views:**
-
-| View | Layout | Filter / Group | Purpose |
-|------|--------|---------------|---------|
-| Board | Board | exclude Done, columns=Status, slice by Repository | Primary working view |
-| Triage | Table | status:Backlog, group by Repository | Assign Priority/Size/Agent |
-| By Agent | Board | exclude Done, columns=Agent | Workload distribution |
-| Dependencies | Table | Blocked By not empty or status/blocked | Cross-repo blockers |
-| Done | Table | status:Done, sort most recent | Completed work log |
-
-**Live instance:** "Core Infrastructure" (project #15) — dotfiles, dotclaude, git-organizer, mac-organizer
-
 ## Repo Template
 
 **Purpose:** Per-repo board for repos needing their own project.
@@ -121,7 +97,7 @@ Label-to-status sync (e.g., `status/ready` → Ready column) is not natively sup
 | Board | Board | columns=Status | Kanban |
 | Backlog | Table | status:Backlog, sort by Priority | Triage queue |
 
-**When to use:** Most repos should NOT need their own project. Use Global for visibility and Program for coordination. Only create a Repo project when a repo has enough issues to justify dedicated views (>20 active items).
+**When to use:** Most repos should NOT need their own project. Use Global for visibility and `tools/audit/cross-repo-status.sh` for cross-repo coordination. Only create a Repo project when a repo has enough issues to justify dedicated views (>20 active items).
 
 **Used by:** `/repo-setup` skill during scaffolding (optional, not default).
 
@@ -135,25 +111,21 @@ Is the repo a fork?
   └─ No →
       Is the repo dormant or profile?
         └─ Yes → No project membership (no active issues)
-        └─ No →
-            Is the repo infrastructure?
-              └─ Yes → Global (#12) + Program (#15 Core Infrastructure)
-              └─ No →
-                  Is the repo active or learning?
-                    └─ Yes → Global (#12) only
-                    └─ No (uncategorized) → Global (#12) only (after categorization)
+        └─ No → Global (#12) only
 ```
+
+Cross-repo coordination (formerly Program-level tracking) is now provided by `tools/audit/cross-repo-status.sh`, not by a project board. See [`oversight-strategy.md`](oversight-strategy.md).
 
 ### Category-to-Project Matrix
 
-| Category | Global (#12) | Program (#15) | Notes |
-|----------|:---:|:---:|-------|
-| infrastructure | Yes | Yes | Core repos: dotfiles, dotclaude, git-organizer, mac-organizer |
-| active | Yes | — | May join a Program project if part of a coordinated group |
-| learning | Yes | — | Low-volume, mostly for visibility |
-| dormant | — | — | No active issues; re-add if reactivated |
-| fork | — | — | Read-only; upstream owns the project board |
-| profile | — | — | .github, .pai — metadata repos, rarely have issues |
+| Category | Global (#12) | Notes |
+|----------|:---:|-------|
+| infrastructure | Yes | Core repos: dotfiles, dotclaude, git-organizer, mac-organizer |
+| active | Yes | Cross-repo coordination via `cross-repo-status.sh` |
+| learning | Yes | Low-volume, mostly for visibility |
+| dormant | — | No active issues; re-add if reactivated |
+| fork | — | Read-only; upstream owns the project board |
+| profile | — | .github, .pai — metadata repos, rarely have issues |
 
 ### Onboarding Checklist (New Repo)
 
@@ -162,22 +134,15 @@ When `/repo-setup` bootstraps a new repo:
 1. Labels synced from `data/label-definitions.json`
 2. Milestones created (Backlog + first version milestone)
 3. Repo linked to Global project (#12) via `gh project link`
-4. If infrastructure category: also link to Program project (#15)
-5. Reminder printed for UI-only steps: configure auto-add rule (if plan allows)
+4. Reminder printed for UI-only steps: configure auto-add rule (if plan allows)
 
-### Agent Field
+### Agent identities
 
-The **Agent** field tracks which agent identity owns a work item.
-
-| Value | Description | When to assign |
-|-------|-------------|---------------|
-| Auditor | Convention enforcement, audits, drift detection | Audit tasks, label syncs, security scans |
-| Builder | Feature implementation, script development | New scripts, skill development, tooling |
-| Ops | Maintenance, CI, deployment, housekeeping | CI fixes, workflow toggles, dependency updates |
-| Curator | Research, knowledge base, documentation | Reference research, convention docs |
-| Human | Manual human work | Design decisions, UI operations, reviews |
-
-**Scope**: Agent field lives on Program projects only (not Global). The Global project tracks work across all repos — the Agent dimension is relevant only where coordinated agent work happens.
+Agent identities (Auditor, Builder, Ops, Curator) are tracked via commit-trailer
+(see [`commit-format.md`](commit-format.md)) and `agent/*` issue labels (see
+[`../../.claude/rules/agent-modes.md`](../../.claude/rules/agent-modes.md)). The
+dedicated **Agent** project field used by the retired Program template is no
+longer needed; identity lives in commit history and label state.
 
 ### ntnxlab-ch Expansion
 
@@ -185,8 +150,8 @@ When adding ntnxlab-ch repos:
 
 - Cross-org sub-issues are supported (since Sep 2025)
 - Auto-add workflows are per-project and can't span orgs — use `actions/add-to-project` GitHub Action
-- Create a separate Program project for ntnxlab-ch coordination
-- Global project (#12) stays scoped to arechste org — create a parallel org-level project for ntnxlab-ch
+- Cross-org overview goes through `tools/audit/cross-repo-status.sh` (forge-portable) rather than a parallel org-level Project board
+- Global project (#12) stays scoped to arechste org
 - Shared conventions (labels, templates) deploy via `/sync-conventions` skill
 
 ## Creating a Project from Template
@@ -204,23 +169,17 @@ gh project field-create NUMBER --owner OWNER --name "Priority" \
 gh project field-create NUMBER --owner OWNER --name "Size" \
   --data-type "SINGLE_SELECT" --single-select-options "XS,S,M,L,XL"
 
-# 4. For Program template, add Agent and Blocked By
-gh project field-create NUMBER --owner OWNER --name "Agent" \
-  --data-type "SINGLE_SELECT" --single-select-options "Agent1,Agent2,Human"
-gh project field-create NUMBER --owner OWNER --name "Blocked By" \
-  --data-type "TEXT"
-
-# 5. Link repos
+# 4. Link repos
 gh project link NUMBER --owner OWNER --repo "OWNER/REPO"
 
-# 6. Bulk import existing open issues
+# 5. Bulk import existing open issues
 gh issue list --repo "OWNER/REPO" --state open --json url --jq '.[].url' | \
   while read -r url; do
     gh project item-add NUMBER --owner OWNER --url "$url"
     sleep 0.5
   done
 
-# 7. Configure views and automations in the GitHub UI
+# 6. Configure views and automations in the GitHub UI
 # (View creation is not available via API)
 ```
 
