@@ -31,7 +31,6 @@ copy is distributed via chezmoi. Sync direction: edit here → apply to dotclaud
 | [commit-format.md](commit-format.md) | Conventional commit spec + trailer resolution |
 | [merge-completion.md](merge-completion.md) | Post-merge cleanup contract (`gh pr merge --delete-branch` + `complete-merge.sh`) |
 | [auto-merge-policy.md](auto-merge-policy.md) | When auto-merge is appropriate (per-repo stance, per-PR-type matrix, PR-as-gate framing) |
-| [audit-log-storage.md](audit-log-storage.md) | Audit log is local-only, gitignored — when to write, who reads, why |
 | [workspace-management.md](workspace-management.md) | Worktrees, branch lifecycle, parallel work |
 | [semver.md](semver.md) | Semantic versioning bump rules and pre-release tags |
 | [release-parity.md](release-parity.md) | CHANGELOG.md ↔ GitHub release alignment |
@@ -43,6 +42,7 @@ copy is distributed via chezmoi. Sync direction: edit here → apply to dotclaud
 |---|---|
 | [label-taxonomy.md](label-taxonomy.md) | Canonical label set (type/, priority/, status/, agent/) |
 | [issue-hierarchy.md](issue-hierarchy.md) | Epic → story → task structure and parent-grouping |
+| [ledger-issues.md](ledger-issues.md) | Permanent write-target issues (`meta/ledger`) — excluded from pickup/release |
 | [project-templates.md](project-templates.md) | GitHub Projects v2 fields, automation, repo→project mapping |
 
 ## CI & cost
@@ -80,6 +80,8 @@ copy is distributed via chezmoi. Sync direction: edit here → apply to dotclaud
 
 | File | Purpose |
 |---|---|
+| [oversight-strategy.md](oversight-strategy.md) | Cross-repo oversight: DIY portable tool, no external tracker for code |
+| [schedule-governance.md](schedule-governance.md) | `/schedule` and `/loop` governance: identity, scope, retirement, offer-pattern |
 | [repo-standards.md](repo-standards.md) | Required files, structure, metadata per repo |
 | [forge-abstraction.md](forge-abstraction.md) | Forge-agnostic patterns for future GitLab/Gitea support |
 | [dependency-management.md](dependency-management.md) | Renovate config, lockfile review, version pinning |
