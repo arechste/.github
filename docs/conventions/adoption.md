@@ -69,6 +69,6 @@ Disconnected environments (CI containers, fresh machines, new contributors):
 
 - `data/forge-index.json` — the index
 - `data/schemas/forge-index.schema.json` — entry shape
-- `.claude/rules/inheritance-model.md` — ownership and rule layering
+- `docs/conventions/inheritance-model.md` — ownership and rule layering
 - #396 — adoption contract (D2 transport, D5 hooks ownership)
 - #411 — Pillar 2 (Author) implementation tracking
