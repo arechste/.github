@@ -44,7 +44,7 @@ type(scope): description
 AI-assisted commits use a structured trailer for traceability:
 
 ```
-Co-Authored-By: Claude/Opus/Auditor@arechste-mini <noreply@anthropic.com>
+Co-Authored-By: Claude/Opus/Auditor@merktnix <noreply@anthropic.com>
                  │     │     │        │
                  │     │     │        └─ hostname (hostname -s)
                  │     │     └────────── identity (role or repo name)
