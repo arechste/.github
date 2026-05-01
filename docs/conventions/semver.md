@@ -49,7 +49,7 @@ Each commit subject is matched against the conventional-commit prefix pattern:
 ^<type>(<scope>)?!?:
 ```
 
-Recognised types: `feat`, `fix`, `chore`, `docs`, `refactor`, `ci`, `test`.  
+Recognised types: `feat`, `fix`, `chore`, `docs`, `refactor`, `ci`, `test`.
 Subjects that don't match any recognised type are counted as `other` (no bump weight).
 
 ### Breaking-change detection
@@ -83,7 +83,7 @@ This mirrors the human decision guide above — the automated rule is its machin
 Any repo governed by git-organizer can adopt this signal:
 
 1. Copy `dotclaude/tools/release-gap.sh` into the repo's `tools/` directory.
-2. Wire it into your triage skill or session-start hook:  
+2. Wire it into your triage skill or session-start hook:
    `tools/release-gap.sh --human` for inline output, `--json` for machine consumption.
 3. No other dependencies — requires only `bash`, `git`, and `jq`.
 
