@@ -1,5 +1,12 @@
 # Auto-Merge Policy
 
+> **Status**: Reference for `mergePolicy=conditional` repos. The active merge
+> contract is `docs/conventions/merge-gate.md` (keys on `mergePolicy` from
+> `repo-inventory.json`). For `mergePolicy=auto` repos, Claude self-merges on CI
+> green without consulting this matrix. For `mergePolicy=human`, human merges.
+> This doc remains canonical for the per-PR matrix when a repo opts into
+> `conditional`.
+
 When the merge button is a ceremony vs. a gate, and how skills should decide per-PR.
 
 > **TL;DR**: PRs are the gate (CI visibility, diff review, revert point). The merge
