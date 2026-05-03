@@ -99,6 +99,8 @@ The critical gate is `review → done` — the **delegator** (source repo) must 
 
 Delegated issues MUST NOT use `Fixes #N` or `Closes #N` in PR bodies. Auto-close on merge bypasses the delegator's verification gate.
 
+Enforced in CI by the `Convention Check` job (`check-delegation-fixes` step in `actions/convention-check/action.yml`): any close-keyword (`close`/`closes`/`closed`/`fix`/`fixes`/`fixed`/`resolve`/`resolves`/`resolved`) referencing an issue with a `delegation/*` label fails the check. Use `Refs #N` instead.
+
 Instead, the target repo should:
 1. Complete work and merge PR normally (no issue-linking keywords)
 2. Post a `COMPLETION_REPORT` comment on the delegated issue
