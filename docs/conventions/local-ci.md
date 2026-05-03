@@ -139,18 +139,24 @@ Manual check: https://github.com/settings/billing/summary
 
 ### Automated Weekly Check
 
-A remote Claude Code trigger runs `budget-monitor.sh --quick` every Monday
-09:00 UTC and files a `type/ci` issue in this repo when usage crosses 75%.
+`.github/workflows/budget-check.yml` runs every Monday 09:00 UTC,
+executes `budget-monitor.sh --check`, and files a `type/chore` +
+`priority/high` issue in this repo when the threshold crosses
+yellow / red / critical. Idempotent: skips filing when an open
+budget-threshold issue already exists.
 
-- Trigger: `weekly-ci-budget-check` (id `trig_01DQokuHKATzgjzasBPLcRwL`)
-- Manage / update / disable: https://claude.ai/code/scheduled
-- Thresholds: `<50%` silent, `50–74%` breakdown only, `75–89%` opens
-  `priority/high` issue, `≥90%` opens `priority/critical` issue with
-  disable recommendations. Core 4 repos (git-organizer, dotclaude,
-  dotfiles, mac-organizer) are exempt from auto-disable recommendations.
+- Workflow file: `.github/workflows/budget-check.yml`
+- Manual trigger: `gh workflow run budget-check.yml --ref main`
+- Thresholds (defined in `tools/ci/budget-monitor.sh`):
+  - `green` < 75% → silent
+  - `yellow` 75–89% → file issue
+  - `red` 90–94% → file issue (suggest preview-mode auto-disable)
+  - `critical` ≥ 95% → file issue (recommend immediate disable)
 
-Prefer updating the trigger (via the URL above or `RemoteTrigger` API)
-over editing this section — the trigger is authoritative.
+Replaces the legacy `weekly-ci-budget-check` Claude `/schedule`
+routine (#483). The routine should be deleted via
+https://claude.ai/code/routines once this workflow has run at
+least once.
 
 ## Cross-Project Strategy
 
