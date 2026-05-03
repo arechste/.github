@@ -1,11 +1,14 @@
 # Review Handoff
 
-When Claude should ask for review, how deep that review needs to be, and how the "merge" instruction interacts with a review gap. Applies to `pr-only` repos where Claude is forbidden to self-merge regardless of CI state.
+How Claude classifies PRs for review depth, what each tier signals to a reviewer, and which proactive triggers pause work before opening a PR.
+
+**Merge gating is defined in `docs/conventions/merge-gate.md`**, not here. The review tier is a *review-value* signal in the PR body — it makes review faster, but does not gate merge. For `mergePolicy=auto` repos (the default for low-blast-radius repos), Claude self-merges on CI green regardless of tier; the banner remains a useful artifact for retrospective review.
 
 This convention fills the gap between:
 
+- `merge-gate.md` — who clicks merge (the active contract)
 - `permission-matrix.md` / `permission-tiers.md` — what Claude is *allowed* to do
-- `auto-merge-policy.md` — when machine-driven auto-merge is appropriate
+- `auto-merge-policy.md` — per-PR matrix for `mergePolicy=conditional` repos
 - `change-verification.md` — post-merge verification bars
 
 ## Review-Depth Tiers (Q1)
@@ -108,48 +111,15 @@ Claude MUST include a review-tier banner at the top of every PR body. The banner
 
 The banner is mandatory. Skills that call `gh pr create` are responsible for computing the tier and writing the banner into the PR body. The PR template provides the skeleton; the skill fills the tier fields.
 
-## When the User Types "merge" Without Review (Q3)
+## How tier interacts with merge
 
-**Stance: trust-but-warn for Skim/Read; strict for Verify/Block.**
+Defined in `docs/conventions/merge-gate.md`. Summary:
 
-### Skim / Read tier
+- For `mergePolicy=auto` repos: tier is a review-value signal, not a merge gate. Claude self-merges on CI green regardless of tier. Verify and Block tiers still pause **before opening the PR** per the proactive triggers below — the banner is the prompt for that pause, captured in the PR body for retrospective review.
+- For `mergePolicy=human` repos: human merges; tier banner gives the human a fast-path read of how deep to go.
+- For `mergePolicy=conditional` repos: defer to `auto-merge-policy.md`'s per-PR matrix.
 
-Claude executes the merge on instruction. Before running `gh pr merge`, Claude echoes once in the conversation:
-
-```
-Merging PR #<N> (<tier> tier — <brief rationale>). No explicit review signal noted.
-```
-
-This warning lands in the conversation log without blocking. It is not a prompt for confirmation.
-
-### Verify tier
-
-Claude does NOT merge on a bare "merge" instruction. Instead, Claude asks one targeted question:
-
-```
-PR #<N> is Verify tier. Before I merge, did you check <specific item from "What to look at">?
-```
-
-If the user confirms ("yes", "checked", "looks good"), Claude merges. The confirmation count resets per session (asking once is enough).
-
-If the user overrides with "merge anyway" or "skip review", Claude merges and logs:
-
-```
-Merging PR #<N> (Verify tier) on explicit override. Review of <item> not confirmed.
-```
-
-### Block tier
-
-Claude does NOT merge, period. The PR body explains the decision needed. Claude's response to "merge" on a Block-tier PR is:
-
-```
-PR #<N> is Block tier. Merging requires a human decision on: <item from banner>.
-Once you've decided, let me know how to proceed and I'll implement the change.
-```
-
-### Implementation note for the `work` skill
-
-The tier is encoded in the PR body banner. A skill re-reading the PR to decide merge behavior should parse the `**Review tier**` line. Pattern: `🔴` → Block (never merge); `🟡` → Verify (ask once); `🔵` or `✅` → Skim/Read (warn-and-merge).
+Block tier is the only tier that refuses to open a PR — it represents a decision Claude cannot make. That refusal is independent of `mergePolicy`.
 
 ## When Claude Proactively Requests Review (Q4)
 
@@ -170,20 +140,24 @@ Proactive requests are targeted — one specific question, not a general "want m
 ```
 permission-tiers.md          — what Claude is allowed to do (autonomyLevel gate)
        ↓
-review-handoff.md            — human review handoff (this file)
+merge-gate.md                — who clicks merge (mergePolicy gate)
        ↓
-auto-merge-policy.md         — when machine-driven merge is OK (autonomyLevel: full, type prefix, escape hatches)
+review-handoff.md            — review-depth signal in PR body (this file)
+       ↓
+auto-merge-policy.md         — per-PR matrix for mergePolicy=conditional only
        ↓
 change-verification.md       — post-merge verification bar (adoption, dry-run, chezmoi apply)
 ```
 
-- **permission-tiers.md**: defines `pr-only` (Claude opens PRs; human merges). This convention defines what "human merges" means in practice for `pr-only` repos.
-- **auto-merge-policy.md**: covers `full`-tier repos where the skill can poll-and-merge. This convention covers the `pr-only` case where it cannot.
-- **change-verification.md**: applies after the merge regardless of who merges and regardless of review depth. The two conventions are independent axes.
+- **merge-gate.md**: keys on `mergePolicy` (`auto` / `human` / `conditional`). The active merge contract.
+- **review-handoff.md** (this file): defines tier classification and PR-body banner. Independent of who clicks merge.
+- **auto-merge-policy.md**: per-PR decision matrix used only for `mergePolicy=conditional` repos.
+- **change-verification.md**: applies after the merge regardless of who merged.
 
 ## References
 
-- `docs/conventions/auto-merge-policy.md` — when machine-driven merge is appropriate
+- `docs/conventions/merge-gate.md` — who clicks merge (the contract this rule defers to)
+- `docs/conventions/auto-merge-policy.md` — per-PR matrix for `mergePolicy=conditional`
 - `docs/conventions/permission-matrix.md` — action-by-autonomy-level matrix
 - `.claude/rules/permission-tiers.md` — autonomy level definitions
 - `docs/conventions/change-verification.md` — post-merge verification bars
