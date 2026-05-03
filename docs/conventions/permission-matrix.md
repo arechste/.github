@@ -15,14 +15,15 @@ See `rules/permission-tiers.md` for autonomy level definitions and decision crit
 | gh pr create | Blocked | Blocked | Auto | Auto |
 | gh issue create | Blocked | Approval | Auto | Auto |
 | gh label create / edit | Blocked | Approval | Auto | Auto |
-| gh pr merge (CI passes) | Blocked | Blocked | Blocked | Auto |
-| gh pr merge (CI fails) | Blocked | Blocked | Blocked | Blocked |
+| **gh pr merge** | — | — | — | — |
 | gh label delete | Blocked | Blocked | Approval | Approval |
 | git push to main | Blocked | Blocked | Blocked | Blocked |
 | gh repo archive | Blocked | Blocked | Blocked | Approval |
 | git reset --hard | Blocked | Blocked | Blocked | Blocked |
 | git push --force to main | Blocked | Blocked | Blocked | Blocked |
 | gh repo delete | Blocked | Blocked | Blocked | Blocked |
+
+**Merge** is governed by `docs/conventions/merge-gate.md`, not this matrix. Autonomy level is the action gate; `mergePolicy` (per-repo, in `repo-inventory.json`) is the merge gate. They compose: a `pr-only` repo can have `mergePolicy=auto` if its CI is comprehensive enough.
 
 **Auto** = Claude can do this without asking.
 **Approval** = Claude must ask the human first.
