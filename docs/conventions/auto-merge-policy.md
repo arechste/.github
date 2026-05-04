@@ -79,18 +79,16 @@ Reasoning:
 
 ## Per-repo stance
 
-Independent of which path is chosen, each repo declares whether auto-merge is
-appropriate for its PR flow:
+Mirrors `merge-gate.md` § Repo bindings (canonical). `repo-inventory.json` is the source of truth; this table is rationale.
 
-| Repo | Auto-merge default | Rationale |
-|------|---------------------|-----------|
-| `dotfiles` | **yes** | Solo maintainer; `chezmoi apply` is an explicit user action (merge ≠ deploy); mostly chore/docs PRs; revert is cheap both in git and operationally |
-| `dotclaude` | **yes** | Config/skills/rules; changes take effect on next `chezmoi apply`; low blast radius; easy to revert |
-| `git-organizer` | **conditional** | Yes for docs/convention housekeeping; manual for rule changes that ripple into consuming repos via `additionalDirectories` |
-| `mac-organizer` | **no** | Fleet-wide blast radius; boot-critical scripts (`nixadmin-setup --remove`, FileVault); revert is cheap in git but operationally expensive — machines already touched |
+| Repo | `mergePolicy` | Rationale |
+|------|---------------|-----------|
+| `dotfiles` | `auto` | Solo maintainer; `chezmoi apply` is an explicit user action (merge ≠ deploy); mostly chore/docs PRs; revert is cheap both in git and operationally |
+| `dotclaude` | `auto` | Config/skills/rules; changes take effect on next `chezmoi apply`; low blast radius; easy to revert |
+| `git-organizer` | `auto` | Convention authoring; ripple into consuming repos lands via `additionalDirectories` reads on next session, not at merge time; revert is a one-PR rollback |
+| `mac-organizer` | `human` | Fleet-wide blast radius; boot-critical scripts (`nixadmin-setup --remove`, FileVault); revert is cheap in git but operationally expensive — machines already touched |
 
-The repo-level stance is the ceiling; the per-PR decision (below) can drop below it
-but never above. `mac-organizer` stays manual regardless of PR type.
+The per-PR decision matrix below applies only to `mergePolicy=conditional` repos (none today). `auto` repos self-merge on CI green regardless of branch type; `human` repos require manual merge regardless of branch type.
 
 ## Per-PR decision matrix
 
